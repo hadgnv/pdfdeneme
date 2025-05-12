@@ -3,23 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anaokulu Gelişim Raporu Düzenleyici</title>
+    <title>Akıllı Poster Oluşturucu</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
-            line-height: 1.6;
+            background-color: #f5f5f5;
         }
         h1 {
             color: #2c3e50;
             text-align: center;
+            margin-bottom: 30px;
         }
-        .container {
-            background-color: #f9f9f9;
+        .upload-container {
+            background: white;
+            padding: 25px;
             border-radius: 8px;
-            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .settings-container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .preview-container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .form-group {
@@ -28,170 +45,343 @@
         label {
             display: block;
             margin-bottom: 5px;
-            font-weight: bold;
+            font-weight: 600;
         }
-        input[type="file"] {
+        select, input, button {
+            width: 100%;
+            padding: 10px;
             border: 1px solid #ddd;
-            padding: 8px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        select {
-            padding: 8px;
-            width: 100%;
-            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 16px;
         }
         button {
             background-color: #3498db;
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
-            width: 100%;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            margin-top: 10px;
         }
         button:hover {
             background-color: #2980b9;
         }
-        .loading {
-            display: none;
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        #imagePreview {
+            max-width: 100%;
+            display: block;
+            margin: 20px auto;
+            border: 1px dashed #ccc;
+        }
+        .page {
+            display: inline-block;
+            border: 1px dashed #999;
+            margin: 5px;
+            background-color: #f9f9f9;
             text-align: center;
-            margin-top: 15px;
+            vertical-align: top;
+            overflow: hidden;
         }
-        .progress-bar {
-            width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 4px;
-            margin-top: 10px;
+        .page-label {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 2px 5px;
+            font-size: 12px;
         }
-        .progress {
-            height: 10px;
-            background-color: #3498db;
-            border-radius: 4px;
-            width: 0%;
+        .dimension-info {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .tab {
+            display: inline-block;
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #ecf0f1;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab.active {
+            background: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Anaokulu Gelişim Raporu Düzenleyici</h1>
-        <p>PDF formatındaki gelişim raporlarınızın yazı boyutunu kolayca büyütün.</p>
-        
+    <h1>Akıllı Poster Oluşturucu</h1>
+    
+    <div class="upload-container">
         <div class="form-group">
-            <label for="pdfUpload">PDF Dosyası Seçin:</label>
-            <input type="file" id="pdfUpload" accept=".pdf" required>
+            <label for="fileInput">Poster Yapılacak Dosyayı Seçin:</label>
+            <input type="file" id="fileInput" accept="image/*,.pdf">
+        </div>
+    </div>
+    
+    <div class="settings-container">
+        <div class="tabs">
+            <div class="tab active" data-tab="size">Boyut Ayarları</div>
+            <div class="tab" data-tab="paper">Kağıt Ayarları</div>
         </div>
         
-        <div class="form-group">
-            <label for="fontSize">Büyütme Oranı:</label>
-            <select id="fontSize">
-                <option value="1.2">%20 Büyüt</option>
-                <option value="1.3">%30 Büyüt</option>
-                <option value="1.5" selected>%50 Büyüt</option>
-                <option value="1.8">%80 Büyüt</option>
-                <option value="2.0">%100 Büyüt (2x)</option>
-            </select>
+        <div class="tab-content active" id="size-tab">
+            <div class="form-group">
+                <label>Boyutlandırma Modu:</label>
+                <select id="sizeMode">
+                    <option value="width">Genişliğe Göre (Yükseklik otomatik)</option>
+                    <option value="height">Yüksekliğe Göre (Genişlik otomatik)</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="widthControl">
+                <label for="targetWidth">Hedef Genişlik (cm):</label>
+                <input type="number" id="targetWidth" min="10" max="500" value="100">
+                <div class="dimension-info">Gerçek boyut: <span id="realWidth">100</span> cm</div>
+            </div>
+            
+            <div class="form-group" id="heightControl" style="display:none;">
+                <label for="targetHeight">Hedef Yükseklik (cm):</label>
+                <input type="number" id="targetHeight" min="10" max="500" value="70">
+                <div class="dimension-info">Gerçek boyut: <span id="realHeight">70</span> cm</div>
+            </div>
         </div>
         
-        <button id="convertBtn" onclick="uploadPDF()">Dönüştür</button>
-        
-        <div class="progress-bar">
-            <div class="progress" id="progressBar"></div>
+        <div class="tab-content" id="paper-tab">
+            <div class="form-group">
+                <label for="paperSize">Kağıt Boyutu:</label>
+                <select id="paperSize">
+                    <option value="a4">A4 (21.0 x 29.7 cm)</option>
+                    <option value="a3">A3 (29.7 x 42.0 cm)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="margin">Kenar Boşluğu (mm):</label>
+                <input type="number" id="margin" min="0" max="20" value="5">
+            </div>
+            
+            <div class="form-group">
+                <label for="overlap">Sayfa Bindirme Payı (mm):</label>
+                <input type="number" id="overlap" min="0" max="20" value="2">
+            </div>
         </div>
         
-        <div class="loading" id="loading">
-            <p>PDF işleniyor, lütfen bekleyin...</p>
+        <button id="generateBtn">Poster Oluştur</button>
+    </div>
+    
+    <div class="preview-container">
+        <h2>Önizleme</h2>
+        <div id="originalPreview">
+            <img id="imagePreview" style="display:none;">
+            <p id="noImageText">Lütfen bir görsel yükleyin ve ayarları yapın.</p>
         </div>
         
-        <div id="error" style="color: red; margin-top: 15px; display: none;"></div>
+        <div id="posterInfo" style="display:none;">
+            <p>Poster Boyutu: <span id="posterSize">100 x 70</span> cm</p>
+            <p>Gerekli Sayfa Sayısı: <span id="pageCount">0</span> (<span id="paperSizeInfo">A4</span>)</p>
+        </div>
+        
+        <div id="posterPreview"></div>
+        
+        <button id="downloadBtn" disabled>PDF Olarak İndir</button>
     </div>
 
     <script>
-        async function uploadPDF() {
-            const fileInput = document.getElementById('pdfUpload');
-            const scaleSelect = document.getElementById('fontSize');
-            const convertBtn = document.getElementById('convertBtn');
-            const loading = document.getElementById('loading');
-            const errorDiv = document.getElementById('error');
-            const progressBar = document.getElementById('progressBar');
-            
-            // Hata mesajını temizle
-            errorDiv.style.display = 'none';
-            
-            // Dosya kontrolü
-            if (!fileInput.files || fileInput.files.length === 0) {
-                showError("Lütfen bir PDF dosyası seçin.");
-                return;
+        // Global değişkenler
+        let originalImage = null;
+        let originalWidth = 0;
+        let originalHeight = 0;
+        let aspectRatio = 0;
+        
+        // Tab kontrolü
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+        
+        // Boyut modu değiştiğinde
+        document.getElementById('sizeMode').addEventListener('change', function() {
+            if (this.value === 'width') {
+                document.getElementById('widthControl').style.display = 'block';
+                document.getElementById('heightControl').style.display = 'none';
+            } else {
+                document.getElementById('widthControl').style.display = 'none';
+                document.getElementById('heightControl').style.display = 'block';
             }
             
-            const file = fileInput.files[0];
-            const scale = scaleSelect.value;
+            if (originalImage) {
+                updateDimensions();
+            }
+        });
+        
+        // Boyut değerleri değiştiğinde
+        document.getElementById('targetWidth').addEventListener('input', function() {
+            document.getElementById('realWidth').textContent = this.value;
+            if (originalImage) {
+                updateDimensions();
+            }
+        });
+        
+        document.getElementById('targetHeight').addEventListener('input', function() {
+            document.getElementById('realHeight').textContent = this.value;
+            if (originalImage) {
+                updateDimensions();
+            }
+        });
+        
+        // Dosya yükleme
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
             
-            // Yükleme animasyonunu göster
-            convertBtn.disabled = true;
-            loading.style.display = 'block';
-            progressBar.style.width = '0%';
-            
-            try {
-                const formData = new FormData();
-                formData.append('pdf', file);
-                formData.append('scale', scale);
-                
-                // İlerleme çubuğu için event listener
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', '/process_pdf', true);
-                
-                xhr.upload.onprogress = function(e) {
-                    if (e.lengthComputable) {
-                        const percentComplete = (e.loaded / e.total) * 100;
-                        progressBar.style.width = percentComplete + '%';
-                    }
-                };
-                
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        // Başarılı yanıt
-                        const blob = new Blob([xhr.response], { type: 'application/pdf' });
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'buyutulmus_rapor.pdf';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-                    } else {
-                        // Hata durumu
-                        showError(xhr.responseText || "PDF işlenirken bir hata oluştu.");
-                    }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                originalImage = new Image();
+                originalImage.onload = function() {
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('imagePreview').src = event.target.result;
+                    document.getElementById('noImageText').style.display = 'none';
                     
-                    // Yükleme animasyonunu gizle
-                    loading.style.display = 'none';
-                    convertBtn.disabled = false;
+                    // Orijinal boyutları ve en-boy oranını kaydet
+                    originalWidth = originalImage.width;
+                    originalHeight = originalImage.height;
+                    aspectRatio = originalWidth / originalHeight;
+                    
+                    // Boyutları güncelle
+                    updateDimensions();
                 };
-                
-                xhr.onerror = function() {
-                    showError("Sunucuyla bağlantı kurulamadı.");
-                    loading.style.display = 'none';
-                    convertBtn.disabled = false;
-                };
-                
-                xhr.responseType = 'arraybuffer';
-                xhr.send(formData);
-                
-            } catch (error) {
-                showError("Bir hata oluştu: " + error.message);
-                loading.style.display = 'none';
-                convertBtn.disabled = false;
+                originalImage.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        // Boyutları güncelleme fonksiyonu
+        function updateDimensions() {
+            const sizeMode = document.getElementById('sizeMode').value;
+            
+            if (sizeMode === 'width') {
+                const targetWidth = parseFloat(document.getElementById('targetWidth').value);
+                const calculatedHeight = targetWidth / aspectRatio;
+                document.getElementById('realHeight').textContent = calculatedHeight.toFixed(1);
+            } else {
+                const targetHeight = parseFloat(document.getElementById('targetHeight').value);
+                const calculatedWidth = targetHeight * aspectRatio;
+                document.getElementById('realWidth').textContent = calculatedWidth.toFixed(1);
             }
         }
         
-        function showError(message) {
-            const errorDiv = document.getElementById('error');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
+        // Poster oluşturma butonu
+        document.getElementById('generateBtn').addEventListener('click', function() {
+            if (!originalImage) {
+                alert('Lütfen önce bir görsel yükleyin!');
+                return;
+            }
+            
+            generatePoster();
+        });
+        
+        // Poster oluşturma fonksiyonu
+        function generatePoster() {
+            const sizeMode = document.getElementById('sizeMode').value;
+            const paperSize = document.getElementById('paperSize').value;
+            const margin = parseInt(document.getElementById('margin').value) / 10; // mm'den cm'ye
+            const overlap = parseInt(document.getElementById('overlap').value) / 10; // mm'den cm'ye
+            
+            // Poster boyutlarını hesapla
+            let posterWidth, posterHeight;
+            
+            if (sizeMode === 'width') {
+                posterWidth = parseFloat(document.getElementById('targetWidth').value);
+                posterHeight = parseFloat(document.getElementById('realHeight').textContent);
+            } else {
+                posterHeight = parseFloat(document.getElementById('targetHeight').value);
+                posterWidth = parseFloat(document.getElementById('realWidth').textContent);
+            }
+            
+            // Kağıt boyutlarını belirle
+            let paperWidth, paperHeight;
+            if (paperSize === 'a4') {
+                paperWidth = 21.0;
+                paperHeight = 29.7;
+            } else {
+                paperWidth = 29.7;
+                paperHeight = 42.0;
+            }
+            
+            // Sayfa sayısını hesapla
+            const cols = Math.ceil(posterWidth / (paperWidth - margin * 2 + overlap));
+            const rows = Math.ceil(posterHeight / (paperHeight - margin * 2 + overlap));
+            const pageCount = cols * rows;
+            
+            // Bilgileri göster
+            document.getElementById('posterSize').textContent = `${posterWidth.toFixed(1)} x ${posterHeight.toFixed(1)}`;
+            document.getElementById('pageCount').textContent = pageCount;
+            document.getElementById('paperSizeInfo').textContent = paperSize.toUpperCase();
+            document.getElementById('posterInfo').style.display = 'block';
+            
+            // Poster önizlemesi oluştur
+            const posterPreview = document.getElementById('posterPreview');
+            posterPreview.innerHTML = '';
+            
+            // Posterin küçültülmüş önizlemesini oluştur
+            const previewScale = Math.min(600 / posterWidth, 400 / posterHeight);
+            const previewWidth = posterWidth * previewScale;
+            const previewHeight = posterHeight * previewScale;
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = previewWidth;
+            canvas.height = previewHeight;
+            const ctx = canvas.getContext('2d');
+            
+            // Görseli çiz (boyutlandırarak)
+            ctx.drawImage(originalImage, 0, 0, previewWidth, previewHeight);
+            
+            // Sayfa sınırlarını çiz
+            ctx.strokeStyle = 'rgba(255,0,0,0.5)';
+            ctx.lineWidth = 1;
+            
+            const pagePreviewWidth = (paperWidth - margin * 2 + overlap) * previewScale;
+            const pagePreviewHeight = (paperHeight - margin * 2 + overlap) * previewScale;
+            
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const x = c * (pagePreviewWidth - overlap * previewScale);
+                    const y = r * (pagePreviewHeight - overlap * previewScale);
+                    
+                    ctx.strokeRect(x, y, pagePreviewWidth, pagePreviewHeight);
+                    
+                    // Sayfa numarasını ekle
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                    ctx.fillRect(x + 5, y + 5, 30, 20);
+                    ctx.fillStyle = 'red';
+                    ctx.font = '12px Arial';
+                    ctx.fillText(`Sayfa ${r * cols + c + 1}`, x + 10, y + 20);
+                }
+            }
+            
+            posterPreview.appendChild(canvas);
+            
+            // İndirme butonunu aktif et
+            document.getElementById('downloadBtn').disabled = false;
         }
+        
+        // PDF indirme butonu (basit bir uyarı - gerçek PDF oluşturma daha karmaşık)
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            alert('PDF oluşturma işlemi bu örnekte simüle edilmiştir. Gerçek uygulamada jsPDF veya pdf-lib gibi kütüphaneler kullanılabilir.');
+        });
     </script>
 </body>
 </html>
