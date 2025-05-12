@@ -3,69 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
     <title>Poster Oluşturucu</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* CSS kodunuz aynı kalabilir */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .panel {
+            background: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #imagePreview {
+            max-width: 100%;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <!-- HTML yapınız aynı kalabilir -->
+    <div class="panel">
+        <h1>Poster Oluşturucu</h1>
+        <input type="file" id="fileInput" accept="image/*">
+        <button id="generateBtn">Poster Oluştur</button>
+        <div id="progressContainer" style="display:none;">
+            <progress id="progressBar" value="0" max="100"></progress>
+            <span id="progressText">0%</span>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Önizleme</h2>
+        <div id="originalPreview">
+            <img id="imagePreview" style="display:none;">
+            <p id="noImageText">Lütfen bir görsel yükleyin</p>
+        </div>
+        <button id="downloadPdfBtn" disabled>PDF İndir</button>
+        <button id="downloadImagesBtn" disabled>Resim Olarak İndir</button>
+    </div>
 
     <script>
-        // JSZip yükleme fonksiyonu
-        function loadJSZip() {
-            return new Promise((resolve, reject) => {
-                if (typeof JSZip !== 'undefined') return resolve();
-                
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-                script.onload = resolve;
-                script.onerror = reject;
-                document.body.appendChild(script);
-            });
-        }
-
-        // DOM yüklendikten sonra çalışacak ana fonksiyon
         document.addEventListener('DOMContentLoaded', function() {
-            // Global değişkenler
-            let originalImage = null;
-            let posterPages = [];
-            
-            // Elementleri seç ve kontrol et
+            // Kontroller
             const generateBtn = document.getElementById('generateBtn');
             const downloadPdfBtn = document.getElementById('downloadPdfBtn');
             const downloadImagesBtn = document.getElementById('downloadImagesBtn');
             
             if (!generateBtn || !downloadPdfBtn || !downloadImagesBtn) {
-                console.error('Gerekli butonlar bulunamadı!');
+                console.error('Butonlar bulunamadı!');
                 return;
             }
+
+            console.log('Tüm elementler başarıyla yüklendi!');
             
-            // Event listener'ları ekle
-            generateBtn.addEventListener('click', generatePoster);
-            downloadPdfBtn.addEventListener('click', downloadAsPDF);
-            downloadImagesBtn.addEventListener('click', downloadAsImages);
+            // Uygulama kodunuz buraya gelecek
+            generateBtn.addEventListener('click', function() {
+                alert('Poster oluşturma butonu çalışıyor!');
+                // Buraya gerçek fonksiyonunuzu ekleyin
+            });
             
-            // Diğer fonksiyonlarınız...
-            async function generatePoster() {
-                // Poster oluşturma kodunuz
-            }
-            
-            async function downloadAsPDF() {
-                // PDF indirme kodunuz
-            }
-            
-            async function downloadAsImages() {
-                try {
-                    await loadJSZip();
-                    // Resim indirme kodunuz
-                } catch (error) {
-                    console.error('JSZip yüklenemedi:', error);
-                    // Alternatif indirme yöntemi
-                }
-            }
+            // Diğer event listener'lar...
         });
     </script>
 </body>
