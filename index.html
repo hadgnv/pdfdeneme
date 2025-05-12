@@ -1,22 +1,196 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <title>PDF Yazı Boyutu Büyütücü</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anaokulu Gelişim Raporu Düzenleyici</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            border: 1px solid #ddd;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        select {
+            padding: 8px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .progress {
+            height: 10px;
+            background-color: #3498db;
+            border-radius: 4px;
+            width: 0%;
+        }
+    </style>
 </head>
 <body>
-    <h1>Anaokulu Gelişim Raporu Düzenleyici</h1>
-    <input type="file" id="pdfUpload" accept=".pdf">
-    <select id="fontSize">
-        <option value="1.2">20% Büyüt</option>
-        <option value="1.5">50% Büyüt</option>
-    </select>
-    <button onclick="processPDF()">Dönüştür</button>
+    <div class="container">
+        <h1>Anaokulu Gelişim Raporu Düzenleyici</h1>
+        <p>PDF formatındaki gelişim raporlarınızın yazı boyutunu kolayca büyütün.</p>
+        
+        <div class="form-group">
+            <label for="pdfUpload">PDF Dosyası Seçin:</label>
+            <input type="file" id="pdfUpload" accept=".pdf" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="fontSize">Büyütme Oranı:</label>
+            <select id="fontSize">
+                <option value="1.2">%20 Büyüt</option>
+                <option value="1.3">%30 Büyüt</option>
+                <option value="1.5" selected>%50 Büyüt</option>
+                <option value="1.8">%80 Büyüt</option>
+                <option value="2.0">%100 Büyüt (2x)</option>
+            </select>
+        </div>
+        
+        <button id="convertBtn" onclick="uploadPDF()">Dönüştür</button>
+        
+        <div class="progress-bar">
+            <div class="progress" id="progressBar"></div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <p>PDF işleniyor, lütfen bekleyin...</p>
+        </div>
+        
+        <div id="error" style="color: red; margin-top: 15px; display: none;"></div>
+    </div>
+
     <script>
-        async function processPDF() {
-            const file = document.getElementById('pdfUpload').files[0];
-            const scale = parseFloat(document.getElementById('fontSize').value);
-            // PDF.js veya pdf-lib ile işlem yapılacak
-            alert("PDF işleniyor... (Bu örnekte backend bağlantısı yok)");
+        async function uploadPDF() {
+            const fileInput = document.getElementById('pdfUpload');
+            const scaleSelect = document.getElementById('fontSize');
+            const convertBtn = document.getElementById('convertBtn');
+            const loading = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const progressBar = document.getElementById('progressBar');
+            
+            // Hata mesajını temizle
+            errorDiv.style.display = 'none';
+            
+            // Dosya kontrolü
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showError("Lütfen bir PDF dosyası seçin.");
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const scale = scaleSelect.value;
+            
+            // Yükleme animasyonunu göster
+            convertBtn.disabled = true;
+            loading.style.display = 'block';
+            progressBar.style.width = '0%';
+            
+            try {
+                const formData = new FormData();
+                formData.append('pdf', file);
+                formData.append('scale', scale);
+                
+                // İlerleme çubuğu için event listener
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/process_pdf', true);
+                
+                xhr.upload.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        progressBar.style.width = percentComplete + '%';
+                    }
+                };
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        // Başarılı yanıt
+                        const blob = new Blob([xhr.response], { type: 'application/pdf' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'buyutulmus_rapor.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    } else {
+                        // Hata durumu
+                        showError(xhr.responseText || "PDF işlenirken bir hata oluştu.");
+                    }
+                    
+                    // Yükleme animasyonunu gizle
+                    loading.style.display = 'none';
+                    convertBtn.disabled = false;
+                };
+                
+                xhr.onerror = function() {
+                    showError("Sunucuyla bağlantı kurulamadı.");
+                    loading.style.display = 'none';
+                    convertBtn.disabled = false;
+                };
+                
+                xhr.responseType = 'arraybuffer';
+                xhr.send(formData);
+                
+            } catch (error) {
+                showError("Bir hata oluştu: " + error.message);
+                loading.style.display = 'none';
+                convertBtn.disabled = false;
+            }
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
         }
     </script>
 </body>
