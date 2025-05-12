@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Yazı Boyutu Büyütücü</title>
+</head>
+<body>
+    <h1>Anaokulu Gelişim Raporu Düzenleyici</h1>
+    <input type="file" id="pdfUpload" accept=".pdf">
+    <select id="fontSize">
+        <option value="1.2">20% Büyüt</option>
+        <option value="1.5">50% Büyüt</option>
+    </select>
+    <button onclick="processPDF()">Dönüştür</button>
+    <script>
+        async function processPDF() {
+            const file = document.getElementById('pdfUpload').files[0];
+            const scale = parseFloat(document.getElementById('fontSize').value);
+            // PDF.js veya pdf-lib ile işlem yapılacak
+            alert("PDF işleniyor... (Bu örnekte backend bağlantısı yok)");
+        }
+    </script>
+</body>
+</html>
