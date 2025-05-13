@@ -4,32 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poster Oluşturucu</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .panel {
-            background: #f9f9f9;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px 15px;
-            background: #4285f4;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        #imagePreview {
-            max-width: 100%;
-            margin-top: 20px;
-        }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .panel { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        button { padding: 10px 15px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        #imagePreview { max-width: 100%; margin-top: 20px; display: none; }
+        #progressBar { width: 0%; height: 20px; background: #4CAF50; }
     </style>
 </head>
 <body>
@@ -37,43 +17,51 @@
         <h1>Poster Oluşturucu</h1>
         <input type="file" id="fileInput" accept="image/*">
         <button id="generateBtn">Poster Oluştur</button>
-        <div id="progressContainer" style="display:none;">
-            <progress id="progressBar" value="0" max="100"></progress>
-            <span id="progressText">0%</span>
+        <div id="progressContainer" style="margin-top: 10px;">
+            <div id="progressBar"></div>
         </div>
     </div>
 
     <div class="panel">
         <h2>Önizleme</h2>
-        <div id="originalPreview">
-            <img id="imagePreview" style="display:none;">
-            <p id="noImageText">Lütfen bir görsel yükleyin</p>
-        </div>
-        <button id="downloadPdfBtn" disabled>PDF İndir</button>
-        <button id="downloadImagesBtn" disabled>Resim Olarak İndir</button>
+        <img id="imagePreview">
+        <button id="downloadBtn" disabled>PDF İndir</button>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Kontroller
             const generateBtn = document.getElementById('generateBtn');
-            const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-            const downloadImagesBtn = document.getElementById('downloadImagesBtn');
-            
-            if (!generateBtn || !downloadPdfBtn || !downloadImagesBtn) {
-                console.error('Butonlar bulunamadı!');
-                return;
-            }
+            const downloadBtn = document.getElementById('downloadBtn');
+            const fileInput = document.getElementById('fileInput');
+            const imagePreview = document.getElementById('imagePreview');
 
-            console.log('Tüm elementler başarıyla yüklendi!');
-            
-            // Uygulama kodunuz buraya gelecek
-            generateBtn.addEventListener('click', function() {
-                alert('Poster oluşturma butonu çalışıyor!');
-                // Buraya gerçek fonksiyonunuzu ekleyin
+            generateBtn.addEventListener('click', async function() {
+                const file = fileInput.files[0];
+                if (!file) return alert('Lütfen bir dosya seçin!');
+
+                // Backend'e gönder
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch('https://your-render-backend-url.onrender.com/api/generate-poster', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    imagePreview.src = 'data:image/jpeg;base64,' + result.imageData;
+                    imagePreview.style.display = 'block';
+                    downloadBtn.disabled = false;
+                } catch (error) {
+                    alert('Hata: ' + error.message);
+                }
             });
-            
-            // Diğer event listener'lar...
+
+            downloadBtn.addEventListener('click', function() {
+                alert('PDF indirme işlemi başlatıldı!');
+                // Gerçek PDF oluşturma kodu buraya gelecek
+            });
         });
     </script>
 </body>
